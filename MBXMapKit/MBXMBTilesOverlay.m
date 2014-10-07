@@ -77,6 +77,8 @@ NSString * const kMBTilesFormatPNG      = @"png";
 
 #pragma mark - Initialization
 
+@synthesize description = _description;
+
 - (instancetype)initWithMBTilesURL:(NSURL *)theURL
 {
     if (self = [super init])
@@ -85,7 +87,7 @@ NSString * const kMBTilesFormatPNG      = @"png";
         {
             // If the URL does not point to a file return nil immediately.
             //
-            if (![[NSFileManager defaultManager] fileExistsAtPath:[theURL path] isDirectory:NO])
+            if (![[NSFileManager defaultManager] fileExistsAtPath:[theURL path] isDirectory:nil])
             {
                 NSLog(@"Invalid URL passed to %s", __PRETTY_FUNCTION__);
                 return nil;
@@ -132,7 +134,7 @@ NSString * const kMBTilesFormatPNG      = @"png";
                 _name        = name;
                 _type        = type;
                 _version     = version;
-                _description = description;
+                description = description;
                 _format      = format;
                 
                 // check if a bounds key exists
