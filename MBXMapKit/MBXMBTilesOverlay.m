@@ -134,7 +134,7 @@ NSString * const kMBTilesFormatPNG      = @"png";
                 _name        = name;
                 _type        = type;
                 _version     = version;
-                description = description;
+                _description = description;
                 _format      = format;
                 
                 // check if a bounds key exists
@@ -304,7 +304,7 @@ NSString * const kMBTilesFormatPNG      = @"png";
 - (MKMapRect)boundingMapRect
 {
     
-    return MKMapRectIsNull(self.mapRect) ? MKMapRectWorld : self.mapRect;
+    return MKMapRectIsNull(self.mapRect) || self.shouldShowEmptyMaps ? MKMapRectWorld : self.mapRect;
 }
 
 - (void)loadTileAtPath:(MKTileOverlayPath)path result:(void (^)(NSData *tileData, NSError *error))result
