@@ -16,7 +16,7 @@ Pod::Spec.new do |m|
   m.ios.deployment_target = '7.0'
   m.osx.deployment_target = '10.9'
 
-  m.source_files = 'MBXMapKit/*.{h,m}'
+  m.source_files = 'MBXMapKit/*.{h,m,c}'
 
   m.requires_arc = true
 
