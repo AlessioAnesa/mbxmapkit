@@ -232,6 +232,10 @@
                                            dataName,
                                            (accessToken ? [@"?" stringByAppendingString:accessToken] : @"")]];
 
+    // Use larger tiles if on v4 API
+    //
+    if ([MBXMapKit accessToken]) self.tileSize = CGSizeMake(512, 512);
+
     // Default to covering up Apple's map
     //
     self.canReplaceMapContent = YES;
