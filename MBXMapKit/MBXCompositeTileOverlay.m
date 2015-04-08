@@ -38,8 +38,22 @@
     // Note: If you're wondering why this doesn't return a MapRect calculated from the TileJSON's bounds, it's been
     // tried and it doesn't work, possibly due to an MKMapKit bug. The main symptom is unpredictable visual glitching.
     //
-    MKMapRect mapRect = MKMapRectWorld;
+    MKMapRect mapRect = MKMapRectNull;
+    for (MKTileOverlay *overlay in self.tileOverlays)
+    {
+        mapRect = MKMapRectUnion(mapRect, overlay.boundingMapRect);
+    }
     return mapRect;
+}
+
+- (NSInteger)minimumZ
+{
+    return [[self.tileOverlays valueForKeyPath:@"@min.minimumZ"] integerValue];
+}
+
+- (NSInteger)maximumZ
+{
+    return [[self.tileOverlays valueForKeyPath:@"@min.maximumZ"] integerValue];
 }
 
 -(BOOL)canReplaceMapContent {
