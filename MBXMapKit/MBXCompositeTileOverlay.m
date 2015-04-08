@@ -53,7 +53,7 @@
 
 - (NSInteger)maximumZ
 {
-    return [[self.tileOverlays valueForKeyPath:@"@min.maximumZ"] integerValue];
+    return [[self.tileOverlays valueForKeyPath:@"@max.maximumZ"] integerValue];
 }
 
 -(BOOL)canReplaceMapContent {
