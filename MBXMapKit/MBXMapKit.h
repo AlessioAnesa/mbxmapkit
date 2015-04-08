@@ -24,9 +24,12 @@
 
 /** Changes the center coordinate and zoom level of the map and optionally animates the change.
 *   @param centerCoordinate The new center coordinate for the map.
-*   @param zoomLevel The new zoom level for the map.
+*   @param zoomLevel The new zoom level for the map. Acceptable values range from a minimium of `0` (full world, if able to be shown in the current `frame`) to a maximum of `20` (the highest detail that MapKit supports). 
 *   @param animated Specify `YES` if you want the map view to scroll to the new location or `NO` if you want the map to display the new location immediately. */
 - (void)mbx_setCenterCoordinate:(CLLocationCoordinate2D)centerCoordinate zoomLevel:(NSUInteger)zoomLevel animated:(BOOL)animated;
+
+/** Returns the current zoom level of the map. */
+- (CGFloat)mbx_zoomLevel;
 
 @end
 
@@ -38,7 +41,9 @@
 /** @name Authorizing Access */
 
 /** Sets the global access token for Mapbox API HTTP requests. Obtain an access token on your [Mapbox account page](https://www.mapbox.com/account/apps/). Setting an access token will use Mapbox's `v4` API, otherwise `v3` will be used. At a future date, `v3` support will be phased out of the library.
-*   @param accessToken A Mapbox API access token. */
+*   @param accessToken A Mapbox API access token. 
+*
+*   @bug Setting an access token and using the Mapbox `v4` API, which serves `512px` map tiles, relies on iOS 8 and above due to a bug in Apple's `MKTileOverlay` in iOS 7. */
 + (void)setAccessToken:(NSString *)accessToken;
 
 /** Returns the global access token for Mapbox API HTTP requests. */

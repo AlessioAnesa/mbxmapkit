@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		012A0D861909D3F6005B69D7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 012A0D841909D3F6005B69D7 /* InfoPlist.strings */; };
 		012A0D881909D3F6005B69D7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 012A0D871909D3F6005B69D7 /* main.m */; };
-		012A0D8E1909D3F6005B69D7 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 012A0D8D1909D3F6005B69D7 /* Images.xcassets */; };
 		012A0DAB1909D515005B69D7 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 012A0DA71909D515005B69D7 /* Main_iPad.storyboard */; };
 		012A0DAC1909D515005B69D7 /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 012A0DA91909D515005B69D7 /* Main_iPhone.storyboard */; };
 		012A0DB11909D52E005B69D7 /* MBXAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 012A0DAE1909D52E005B69D7 /* MBXAppDelegate.m */; };
@@ -20,6 +19,8 @@
 		012A0DBB1909D5FC005B69D7 /* MBXPointAnnotation.m in Sources */ = {isa = PBXBuildFile; fileRef = 017F79431909D1D200EF8AD1 /* MBXPointAnnotation.m */; };
 		012A0DBC1909D5FC005B69D7 /* MBXRasterTileOverlay.m in Sources */ = {isa = PBXBuildFile; fileRef = 017F79451909D1D200EF8AD1 /* MBXRasterTileOverlay.m */; };
 		DDB97D07199D72A5006EC3A6 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = DDB97D06199D72A5006EC3A6 /* libsqlite3.dylib */; };
+		DDC92F961A1544CD0082BDE8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DDC92F951A1544CD0082BDE8 /* Images.xcassets */; };
+		DDC92FC61A158CFB0082BDE8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = DDC92FC51A158CFB0082BDE8 /* LaunchScreen.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,7 +29,6 @@
 		012A0D851909D3F6005B69D7 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		012A0D871909D3F6005B69D7 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		012A0D891909D3F6005B69D7 /* MBXMapKit iOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MBXMapKit iOS-Prefix.pch"; sourceTree = "<group>"; };
-		012A0D8D1909D3F6005B69D7 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		012A0DA81909D515005B69D7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
 		012A0DAA1909D515005B69D7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
 		012A0DAD1909D52E005B69D7 /* MBXAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBXAppDelegate.h; sourceTree = "<group>"; };
@@ -47,6 +47,8 @@
 		017F79441909D1D200EF8AD1 /* MBXRasterTileOverlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBXRasterTileOverlay.h; sourceTree = "<group>"; };
 		017F79451909D1D200EF8AD1 /* MBXRasterTileOverlay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MBXRasterTileOverlay.m; sourceTree = "<group>"; };
 		DDB97D06199D72A5006EC3A6 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		DDC92F951A1544CD0082BDE8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
+		DDC92FC51A158CFB0082BDE8 /* LaunchScreen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LaunchScreen.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,7 +72,8 @@
 				012A0DB01909D52E005B69D7 /* MBXViewController.m */,
 				012A0DA71909D515005B69D7 /* Main_iPad.storyboard */,
 				012A0DA91909D515005B69D7 /* Main_iPhone.storyboard */,
-				012A0D8D1909D3F6005B69D7 /* Images.xcassets */,
+				DDC92F951A1544CD0082BDE8 /* Images.xcassets */,
+				DDC92FC51A158CFB0082BDE8 /* LaunchScreen.xib */,
 				012A0D821909D3F6005B69D7 /* Supporting Files */,
 			);
 			name = "Sample App (iOS)";
@@ -144,6 +147,7 @@
 				012A0D791909D3F6005B69D7 /* Sources */,
 				012A0D7A1909D3F6005B69D7 /* Frameworks */,
 				012A0D7B1909D3F6005B69D7 /* Resources */,
+				DDC92F6B1A15395D0082BDE8 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -165,7 +169,7 @@
 				ORGANIZATIONNAME = MapBox;
 				TargetAttributes = {
 					012A0D7C1909D3F6005B69D7 = {
-						DevelopmentTeam = GJZR2MEM28;
+						DevelopmentTeam = U8B2JGE4C6;
 						SystemCapabilities = {
 							com.apple.iOS = {
 								enabled = 1;
@@ -198,13 +202,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				012A0DAC1909D515005B69D7 /* Main_iPhone.storyboard in Resources */,
+				DDC92F961A1544CD0082BDE8 /* Images.xcassets in Resources */,
 				012A0DAB1909D515005B69D7 /* Main_iPad.storyboard in Resources */,
 				012A0D861909D3F6005B69D7 /* InfoPlist.strings in Resources */,
-				012A0D8E1909D3F6005B69D7 /* Images.xcassets in Resources */,
+				DDC92FC61A158CFB0082BDE8 /* LaunchScreen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DDC92F6B1A15395D0082BDE8 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "export PATH=$HOME/bin:/usr/local/bin:/usr/bin\n\n#\n# don't burn during Debug builds\n#\nif [[ ${CONFIGURATION} != \"Release\" ]]; then\n    echo \"Skipping icon burning due to ${CONFIGURATION} configuration\"\n    exit 0\nfi\n\necho \"Burning app icons...\"\n\n#\n# retrieve git info\n#\ncommit=`git rev-parse --short HEAD`\nbranch=`git rev-parse --abbrev-ref HEAD`\nrepo=`git remote show -n origin | grep 'Fetch URL' | sed -e 's/.*github\\.com:mapbox\\///' -e 's/\\.git$//' -e 's/^mapbox-//'`\n\n#\n# work directly in app bundle\n#\nbundle_path=\"${CONFIGURATION_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\necho \"working in ${bundle_path}\"\ncd \"${bundle_path}\"\n\nfor file in `find . -type f -name AppIcon\\*.png`\ndo\n    iconoblast \"$file\" $commit $branch $repo\ndone\ncd \"$OLDPWD\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		012A0D791909D3F6005B69D7 /* Sources */ = {

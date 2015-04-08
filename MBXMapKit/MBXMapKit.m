@@ -5,6 +5,8 @@
 //  Copyright (c) 2014 Mapbox. All rights reserved.
 //
 
+#import "TargetConditionals.h"
+
 #if TARGET_OS_IPHONE
 @import UIKit;
 #else
@@ -13,7 +15,7 @@
 
 #import "MBXMapKit.h"
 
-NSString *const MBXMapKitVersion = @"0.4.0";
+NSString *const MBXMapKitVersion = @"0.5.0";
 
 #pragma mark - Add support to MKMapView for using Mapbox-style center/zoom to configure the visible region
 
@@ -21,8 +23,21 @@ NSString *const MBXMapKitVersion = @"0.4.0";
 
 - (void)mbx_setCenterCoordinate:(CLLocationCoordinate2D)centerCoordinate zoomLevel:(NSUInteger)zoomLevel animated:(BOOL)animated
 {
-    MKCoordinateRegion region = MKCoordinateRegionMake(centerCoordinate, MKCoordinateSpanMake(0, 360 / pow(2, zoomLevel) * self.frame.size.width / 256));
+    zoomLevel = zoomLevel > 20 ? 20 : zoomLevel;
+
+    MKCoordinateRegion region = MKCoordinateRegionMake(centerCoordinate, MKCoordinateSpanMake(0, 360 / (pow(2, zoomLevel) * (self.frame.size.width / 256))));
     [self setRegion:region animated:animated];
+}
+
+- (CGFloat)mbx_zoomLevel
+{
+    CGFloat zoomLevel = self.region.span.longitudeDelta;
+    zoomLevel /= 360;
+    zoomLevel /= (self.frame.size.width / 256);
+    zoomLevel = log2f(zoomLevel);
+    zoomLevel = fabs(zoomLevel);
+
+    return zoomLevel;
 }
 
 @end
@@ -65,6 +80,8 @@ NSInteger const MBXMapKitErrorCodeURLSessionConnectivity = -6;
 
 + (void)setAccessToken:(NSString *)accessToken
 {
+    NSAssert([[[UIDevice currentDevice] systemVersion] integerValue] >= 8, @"use of access tokens and the Mapbox v4 API requires iOS 8 and up");
+
     [[MBXMapKit sharedInstance] setAccessToken:accessToken];
 }
 
