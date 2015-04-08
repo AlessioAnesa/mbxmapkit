@@ -199,7 +199,15 @@
     if (self)
     {
         _offlineMapDatabase = offlineMapDatabase;
-        [self setupMapID:offlineMapDatabase.mapID includeMetadata:offlineMapDatabase.includesMetadata includeMarkers:offlineMapDatabase.includesMarkers imageQuality:offlineMapDatabase.imageQuality];
+        if (offlineMapDatabase.includesMetadata)
+        {
+            self.minimumZ = offlineMapDatabase.minimumZ;
+            self.maximumZ = offlineMapDatabase.maximumZ;
+            
+            _center = offlineMapDatabase.mapRegion.center;
+            _centerZoom = (self.maximumZ - self.minimumZ)/2;
+        }
+        [self setupMapID:offlineMapDatabase.mapID includeMetadata:!offlineMapDatabase.includesMetadata includeMarkers:offlineMapDatabase.includesMarkers imageQuality:offlineMapDatabase.imageQuality];
     }
     return self;
 }
@@ -276,11 +284,26 @@
 
 #pragma mark - MKTileOverlay implementation
 
+- (MKMapRect)MKMapRectForCoordinateRegion:(MKCoordinateRegion)region
+{
+    MKMapPoint a = MKMapPointForCoordinate(CLLocationCoordinate2DMake(
+                                                                      region.center.latitude + region.span.latitudeDelta / 2,
+                                                                      region.center.longitude - region.span.longitudeDelta / 2));
+    MKMapPoint b = MKMapPointForCoordinate(CLLocationCoordinate2DMake(
+                                                                      region.center.latitude - region.span.latitudeDelta / 2,
+                                                                      region.center.longitude + region.span.longitudeDelta / 2));
+    return MKMapRectMake(MIN(a.x,b.x), MIN(a.y,b.y), ABS(a.x-b.x), ABS(a.y-b.y));
+}
+
 - (MKMapRect)boundingMapRect
 {
     // Note: If you're wondering why this doesn't return a MapRect calculated from the TileJSON's bounds, it's been
     // tried and it doesn't work, possibly due to an MKMapKit bug. The main symptom is unpredictable visual glitching.
     //
+    if (self.offlineMapDatabase)
+    {
+        return [self MKMapRectForCoordinateRegion:self.offlineMapDatabase.mapRegion];
+    }
     return MKMapRectWorld;
 }
 
