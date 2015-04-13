@@ -163,8 +163,12 @@
     return mapRect;
 }
 
--(NSString *)uniqueID {
-    return [[NSUUID UUID] UUIDString];
+-(NSString *)uniqueID
+{
+    if (!_uniqueID)
+        _uniqueID = [[NSUUID UUID] UUIDString];
+    
+    return _uniqueID;
 }
 
 @end

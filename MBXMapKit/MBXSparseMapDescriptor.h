@@ -18,6 +18,8 @@
 -(id)initWithMinimumZ: (NSInteger) minimumZ
              maximumZ: (NSInteger) maximumZ;
 
+@property (strong) NSString *uniqueID;
+
 // Regions
 -(void)addRegion: (MKCoordinateRegion) region identifier: (NSString *)regionIdentifier;
 -(NSArray*)regionsIdentifiers;

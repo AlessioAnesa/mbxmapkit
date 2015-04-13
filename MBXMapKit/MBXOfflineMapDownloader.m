@@ -818,7 +818,7 @@
         //
         NSString *uniqueID = [mapDescriptor uniqueID];
         assert(uniqueID.length>0);
-        _uniqueID =  uniqueID;
+        _uniqueID = uniqueID;
         _mapID = mapID;
         _includesMetadata = includeMetadata;
         _includesMarkers = includeMarkers;
