@@ -203,8 +203,7 @@ typedef NS_ENUM(NSUInteger, MBXOfflineMapDownloaderState) {
 
 @required
 
--(int)tilesCount;
--(RMTile)tileAtIndex:(int)index;
+- (void)enumerateTiles:(void (^)(RMTile tile))block;
 
 -(NSInteger)minimumZ;
 -(NSInteger)maximumZ;

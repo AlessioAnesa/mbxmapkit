@@ -25,7 +25,4 @@
 -(NSArray*)regionsIdentifiers;
 -(MKCoordinateRegion)regionForKey:(NSString*)identifier;
 
--(int)tilesCount;
--(RMTile)tileAtIndex:(int)index;
-
 @end

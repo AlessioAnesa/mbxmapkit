@@ -133,7 +133,7 @@
         NSString *reason = [NSString stringWithFormat:@"The offline database has no data for %@",[url absoluteString]];
         *error = [NSError mbx_errorWithCode:MBXMapKitErrorCodeOfflineMapHasNoDataForURL reason:reason description:@"No offline data for key error"];
     }
-//    UIImage *image = [UIImage imageWithData:data];
+    UIImage *image = [UIImage imageWithData:data];
     return data;
 }
 

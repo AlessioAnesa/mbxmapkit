@@ -836,7 +836,6 @@
           @"includesMetadata" : includeMetadata?@"YES":@"NO",
           @"includesMarkers" : includeMarkers?@"YES":@"NO",
           @"imageQuality" : [NSString stringWithFormat:@"%ld",(long)imageQuality],
-          // TODO: estrarre lat/lon e deltas
           @"region_latitude" : [NSString stringWithFormat:@"%.8f",mapRegion.center.latitude],
           @"region_longitude" : [NSString stringWithFormat:@"%.8f",mapRegion.center.longitude],
           @"region_latitude_delta" : [NSString stringWithFormat:@"%.8f",mapRegion.span.latitudeDelta],
@@ -861,43 +860,49 @@
                              mapID,
                              (accessToken ? [@"&" stringByAppendingString:accessToken] : @"")]];
         }
+        
+        NSString *markersURLString;
         if(includeMarkers)
         {
-            [urls addObject:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/%@/%@/%@%@",
-                             version,
-                             mapID,
-                             dataName,
-                             (accessToken ? [@"?" stringByAppendingString:accessToken] : @"")]];
+            markersURLString = [NSString stringWithFormat:@"https://a.tiles.mapbox.com/%@/%@/%@%@",
+                                version,
+                                mapID,
+                                dataName,
+                                (accessToken ? [@"?" stringByAppendingString:accessToken] : @"")];
+            [urls addObject:markersURLString];
         }
         
-        for (long i=0;i<mapDescriptor.tilesCount;i++) {
-            RMTile tile = [mapDescriptor tileAtIndex:i];
-            [urls addObject:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/%@/%@/%ld/%ld/%ld%@.%@%@",
-                             ([MBXMapKit accessToken] ? @"v4" : @"v3"),
-                             mapID,
+        NSString *format = [NSString stringWithFormat:@"https://a.tiles.mapbox.com/%@/%@/%@/%@/%@%@.%@%@",
+                            ([MBXMapKit accessToken] ? @"v4" : @"v3"),
+                            mapID,
+                            @"%ld",
+                            @"%ld",
+                            @"%ld",
+#if TARGET_OS_IPHONE
+                            [[UIScreen mainScreen] scale] > 1.0 ? @"@2x" : @"",
+#else
+                            // Making this smart enough to handle a Retina MacBook with a normal dpi external display
+                            // is complicated. For now, just default to @1x images and a 1.0 scale.
+                            //
+                            @"",
+#endif
+                            [MBXRasterTileOverlay qualityExtensionForImageQuality:_imageQuality],
+                            (accessToken ? [@"?" stringByAppendingString:accessToken] : @"")
+                            ];
+        [mapDescriptor enumerateTiles:^(RMTile tile)
+        {
+            [urls addObject:[NSString stringWithFormat:format,
                              (long)tile.zoom,
                              (long)tile.x,
-                             (long)tile.y,
-#if TARGET_OS_IPHONE
-                             [[UIScreen mainScreen] scale] > 1.0 ? @"@2x" : @"",
-#else
-                             // Making this smart enough to handle a Retina MacBook with a normal dpi external display
-                             // is complicated. For now, just default to @1x images and a 1.0 scale.
-                             //
-                             @"",
-#endif
-                             [MBXRasterTileOverlay qualityExtensionForImageQuality:_imageQuality],
-                             ([MBXMapKit accessToken] ? [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]] : @"")
-                             ]
-             ];
-        }
+                             (long)tile.y
+                             ]];
+        }];
      
         // Determine if we need to add marker icon urls (i.e. parse markers.geojson/features.json), and if so, add them
         //
         if(includeMarkers)
         {
-            NSString *dataName = ([MBXMapKit accessToken] ? @"features.json" : @"markers.geojson");
-            NSURL *geojson = [NSURL URLWithString:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/v3/%@/%@", mapID, dataName]];
+            NSURL *geojson = [NSURL URLWithString:markersURLString];
             NSURLSessionDataTask *task;
             NSURLRequest *request = [NSURLRequest requestWithURL:geojson cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60];
             task = [_dataSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
@@ -944,17 +949,7 @@
                             
                             // Create the database and start the download
                             //
-                            NSError *error;
-                            [self sqliteCreateDatabaseUsingMetadata:metadataDictionary urlArray:urls withError:&error];
-                            if(error)
-                            {
-                                [self cancelImmediatelyWithError:error];
-                            }
-                            else
-                            {
-                                [self notifyDelegateOfInitialCount];
-                                [self startDownloading];
-                            }
+                            [self downloadWithMetadata:metadataDictionary urlArray:urls];
                         }
                     }];
             [task resume];
@@ -963,19 +958,24 @@
         {
             // There aren't any marker icons to worry about, so just create database and start downloading
             //
-            NSError *error;
-            [self sqliteCreateDatabaseUsingMetadata:metadataDictionary urlArray:urls withError:&error];
-            if(error)
-            {
-                [self cancelImmediatelyWithError:error];
-            }
-            else
-            {
-                [self notifyDelegateOfInitialCount];
-                [self startDownloading];
-            }
+            [self downloadWithMetadata:metadataDictionary urlArray:urls];
         }
     }];
+}
+
+- (void)downloadWithMetadata:(NSDictionary *)metadataDictionary urlArray:(NSArray *)urls
+{
+    NSError *error;
+    [self sqliteCreateDatabaseUsingMetadata:metadataDictionary urlArray:urls withError:&error];
+    if(error)
+    {
+        [self cancelImmediatelyWithError:error];
+    }
+    else
+    {
+        [self notifyDelegateOfInitialCount];
+        [self startDownloading];
+    }
 }
 
 - (void)beginDownloadingMapID:(NSString *)mapID mapDescriptor:(id<MBXMapDescriptorDelegate>)mapDescriptor {

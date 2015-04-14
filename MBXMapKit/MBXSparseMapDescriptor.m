@@ -10,8 +10,6 @@
 
 @interface MBXSparseMapDescriptor ()
 @property (strong) NSDictionary *regionsDictionary;
-@property (strong) NSArray *tilesArray;
-@property BOOL shouldRebuildTilesCache;
 // Properties
 @property NSInteger minimumZ;
 @property NSInteger maximumZ;
@@ -29,21 +27,25 @@
     _maximumZ = maximumZ;
     
     _regionsDictionary = [NSDictionary dictionary];
-    _shouldRebuildTilesCache = YES;
 
     return self;
 }
 
 -(void)addRegion: (MKCoordinateRegion) region identifier: (NSString *)identifier {
     
-    _shouldRebuildTilesCache = YES;
-    // region to NSData
-    NSData *data = [NSData dataWithBytes:&region length:sizeof(region)];
+    // region to NSValue
+    NSValue *centerValue = [NSValue valueWithMKCoordinate:region.center];
+    NSValue *spanValue = [NSValue valueWithMKCoordinateSpan:region.span];
     
     NSMutableDictionary *dict = [self.regionsDictionary mutableCopy];
-    [dict setObject: data forKey: identifier];
+    [dict setObject:@[ centerValue, spanValue ] forKey: identifier];
     self.regionsDictionary = dict;
-    
+}
+
+-(MKCoordinateRegion)regionForKey:(NSString*)identifier
+{
+    NSArray *data = self.regionsDictionary[identifier];
+    return MKCoordinateRegionMake([data[0] MKCoordinateValue], [data[1] MKCoordinateSpanValue]);
 }
 
 -(int)regionsCount {
@@ -54,20 +56,14 @@
     return self.regionsDictionary.allKeys;
 }
 
--(void)invalidate {
-    _shouldRebuildTilesCache = YES;
-    self.tilesArray = nil;
-}
 
--(void) rebuildTilesCache {
-    if (_shouldRebuildTilesCache==NO) return;
- 
+-(void)enumerateTiles:(void (^)(RMTile))block
+{
     NSInteger minimumZ = self.minimumZ;
     NSInteger maximumZ = self.maximumZ;
     
-    NSMutableDictionary *tilesDict = [NSMutableDictionary dictionary];
-    for (NSString *mapRegionIdentifier in self.regionsDictionary.allKeys) {
-        
+    for (NSString *mapRegionIdentifier in self.regionsDictionary.allKeys)
+    {
         MKCoordinateRegion mapRegion = [self regionForKey: mapRegionIdentifier];
         CLLocationDegrees minLat = mapRegion.center.latitude - (mapRegion.span.latitudeDelta / 2.0);
         CLLocationDegrees maxLat = minLat + mapRegion.span.latitudeDelta;
@@ -85,47 +81,19 @@
             maxX = floor(((maxLon + 180.0) / 360.0) * tilesPerSide);
             minY = floor((1.0 - (logf(tanf(maxLat * M_PI / 180.0) + 1.0 / cosf(maxLat * M_PI / 180.0)) / M_PI)) / 2.0 * tilesPerSide);
             maxY = floor((1.0 - (logf(tanf(minLat * M_PI / 180.0) + 1.0 / cosf(minLat * M_PI / 180.0)) / M_PI)) / 2.0 * tilesPerSide);
-            for(NSUInteger x=minX; x<=maxX; x++)
+            for(uint32_t x=minX; x<=maxX; x++)
             {
-                for(NSUInteger y=minY; y<=maxY; y++)
+                for(uint32_t y=minY; y<=maxY; y++)
                 {
                     RMTile tile = RMTileMake(x, y, zoom);
-                    uint64_t tileHash = RMTileHash(tile);
-                    NSData *tileData = [NSData dataWithBytes:&tile length:sizeof(tile)];
-
-                    [tilesDict setObject: tileData forKey:@(tileHash)];
+                    block(tile);
                 }
             }
         }
     }
-    self.tilesArray = tilesDict.allValues;
-}
-
--(MKCoordinateRegion)regionForKey:(NSString*)identifier {
-
-    NSData *data = self.regionsDictionary[identifier];
-    MKCoordinateRegion region;
-    [data getBytes:&region length:sizeof(region)];
-
-    return region;
 }
 
 #pragma mark - MBXMapDescriptorDelegate
-
--(int)tilesCount {
-    if (_shouldRebuildTilesCache) [self rebuildTilesCache];
-    return self.tilesArray.count;
-}
-
--(RMTile)tileAtIndex:(int)index {
-    if (_shouldRebuildTilesCache) [self rebuildTilesCache];
-    
-    RMTile tile;
-    NSData *data = self.tilesArray[index];
-    [data getBytes: &tile length:sizeof(tile)];
-    
-    return tile;
-}
 
 -(MKCoordinateRegion)mapRegion {
     MKMapRect globalMaprect = MKMapRectNull;

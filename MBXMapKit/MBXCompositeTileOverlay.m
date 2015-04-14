@@ -81,7 +81,6 @@
     }];
 }
 - (void)loadTileAtPath:(MKTileOverlayPath)path result:(void (^)(NSData *, NSError *))result {
-//- (void)loadTileAtPath:(MKTileOverlayPath)path result:(void (^)(NSData *tileData, NSError *error))result {
     NSInteger tileIndex = self.tileOverlays.count-1;
 
     [self loadTileAtPath:path tileOverlayAtIndex:tileIndex result:result];

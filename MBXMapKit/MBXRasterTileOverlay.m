@@ -209,15 +209,7 @@ typedef NS_ENUM(NSUInteger, MBXRenderCompletionState) {
     if (self)
     {
         _offlineMapDatabase = offlineMapDatabase;
-        if (offlineMapDatabase.includesMetadata)
-        {
-            self.minimumZ = offlineMapDatabase.minimumZ;
-            self.maximumZ = offlineMapDatabase.maximumZ;
-            
-            _center = offlineMapDatabase.mapRegion.center;
-            _centerZoom = (self.maximumZ - self.minimumZ)/2;
-        }
-        [self setupMapID:offlineMapDatabase.mapID includeMetadata:!offlineMapDatabase.includesMetadata includeMarkers:offlineMapDatabase.includesMarkers imageQuality:offlineMapDatabase.imageQuality];
+        [self setupMapID:offlineMapDatabase.mapID includeMetadata:offlineMapDatabase.includesMetadata includeMarkers:offlineMapDatabase.includesMarkers imageQuality:offlineMapDatabase.imageQuality];
     }
     return self;
 }
