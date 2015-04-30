@@ -134,7 +134,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     request.timeoutInterval = 60;
     request.allowsCellularAccess = YES;
     [request addValue:[MBXMapKit userAgent] forHTTPHeaderField:@"User-Agent"];
-
+    
     return request;
 }
 
@@ -144,7 +144,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     // for error checking.
     //
     NSMutableString *marker = [[NSMutableString alloc] initWithString:@"pin-"];
-
+    
     if ([size hasPrefix:@"l"])
     {
         [marker appendString:@"l"]; // large
@@ -157,7 +157,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     {
         [marker appendString:@"m"]; // default to medium
     }
-
+    
     if ([symbol length] > 0)
     {
         [marker appendFormat:@"-%@+",symbol];
@@ -166,9 +166,9 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     {
         [marker appendString:@"+"];
     }
-
+    
     [marker appendString:[color stringByReplacingOccurrencesOfString:@"#" withString:@""]];
-
+    
 #if TARGET_OS_IPHONE
     [marker appendString:([[UIScreen mainScreen] scale] > 1.0 ? @"@2x.png" : @".png")];
 #else
@@ -177,9 +177,9 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     //
     [marker appendString:@".png"];
 #endif
-
+    
     return [NSURL URLWithString:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/v4/marker/%@%@", marker,
-                                    [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
+                                 [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
 }
 
 
@@ -187,74 +187,94 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
 
 - (instancetype)initWithMapID:(NSString *)mapID;
 {
-    self = [super init];
-    if (self)
-    {
-        [self setupMapID:mapID includeMetadata:YES includeMarkers:YES imageQuality:MBXRasterImageQualityFull];
-    }
-    return self;
+    return [self initWithMapID:mapID
+               includeMetadata:YES
+                includeMarkers:YES
+                  imageQuality:MBXRasterImageQualityFull];
 }
 
 
-- (instancetype)initWithMapID:(NSString *)mapID includeMetadata:(BOOL)includeMetadata includeMarkers:(BOOL)includeMarkers
+- (instancetype)initWithMapID:(NSString *)mapID
+              includeMetadata:(BOOL)includeMetadata
+               includeMarkers:(BOOL)includeMarkers
 {
-    self = [super init];
-    if (self)
-    {
-        [self setupMapID:mapID includeMetadata:includeMetadata includeMarkers:includeMarkers imageQuality:MBXRasterImageQualityFull];
-    }
-    return self;
-}
-
-
-- (instancetype)initWithMapID:(NSString *)mapID includeMetadata:(BOOL)includeMetadata includeMarkers:(BOOL)includeMarkers imageQuality:(MBXRasterImageQuality)imageQuality
-{
-    self = [super init];
-    if (self)
-    {
-        [self setupMapID:mapID includeMetadata:includeMetadata includeMarkers:includeMarkers imageQuality:imageQuality];
-    }
-    return self;
+    return [self initWithMapID:mapID
+               includeMetadata:includeMetadata
+                includeMarkers:includeMarkers
+                  imageQuality:MBXRasterImageQualityFull];
 }
 
 - (instancetype)initWithOfflineMapDatabase:(MBXOfflineMapDatabase *)offlineMapDatabase
 {
     assert(offlineMapDatabase);
-    self = [super init];
+    self = [self initWithMapID:offlineMapDatabase.mapID
+               includeMetadata:offlineMapDatabase.includesMetadata
+                includeMarkers:offlineMapDatabase.includesMarkers
+                  imageQuality:offlineMapDatabase.imageQuality];
     if (self)
     {
         _offlineMapDatabase = offlineMapDatabase;
-        [self setupMapID:offlineMapDatabase.mapID includeMetadata:offlineMapDatabase.includesMetadata includeMarkers:offlineMapDatabase.includesMarkers imageQuality:offlineMapDatabase.imageQuality];
     }
     return self;
 }
 
-- (void)setupMapID:(NSString *)mapID includeMetadata:(BOOL)includeMetadata includeMarkers:(BOOL)includeMarkers imageQuality:(MBXRasterImageQuality)imageQuality
+- (instancetype)initWithMapID:(NSString *)mapID
+              includeMetadata:(BOOL)includeMetadata
+               includeMarkers:(BOOL)includeMarkers
+                 imageQuality:(MBXRasterImageQuality)imageQuality
+{
+    NSString *template = [NSString stringWithFormat:@"https://a.tiles.mapbox.com/%@/%@/%@/%@/%@%@.%@%@",
+                          ([MBXMapKit accessToken] ? @"v4" : @"v3"),
+                          mapID,
+                          @"%ld",
+                          @"%ld",
+                          @"%ld",
+                          @"%@",
+                          [MBXRasterTileOverlay qualityExtensionForImageQuality:imageQuality],
+                          ([MBXMapKit accessToken] ? [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]] : @"")
+                          ];
+    self = [self initWithURLTemplate:template];
+    if (self)
+    {
+        [self setupMapID:mapID
+         includeMetadata:includeMetadata
+          includeMarkers:includeMarkers
+            imageQuality:imageQuality];
+    }
+    return self;
+}
+
+- (void)setupMapID:(NSString *)mapID
+   includeMetadata:(BOOL)includeMetadata
+    includeMarkers:(BOOL)includeMarkers
+      imageQuality:(MBXRasterImageQuality)imageQuality
 {
     // Save the map configuration
     //
     _mapID = mapID;
     _imageQuality = imageQuality;
     _metadataURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/v4/%@.json?secure%@",
-                                            _mapID,
-                                            [@"&access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
+                                         _mapID,
+                                         [@"&access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
     _markersURL = [NSURL URLWithString:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/v4/%@/features.json%@",
-                                            _mapID,
-                                            [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
-
+                                        _mapID,
+                                        [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]]]];
+    
     // Use larger tiles if on retina
     //
-    if ([[UIScreen mainScreen] scale] > 1) self.tileSize = CGSizeMake(512, 512);
-
+    
+    if ([MBXMapKit accessToken] && [[UIScreen mainScreen] scale] > 1)
+        self.tileSize = CGSizeMake(512, 512);
+    
     // Default to covering up Apple's map
     //
     self.canReplaceMapContent = YES;
-
+    
     // Default attribution
     self.attribution = @"© Mapbox\n© OpenStreetMap Contributors";
-
+    
     self.pendingTileRenders = [NSMutableSet new];
-
+    
     // Initiate asynchronous metadata and marker loading
     //
     if(includeMetadata)
@@ -265,7 +285,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     {
         _didFinishLoadingMetadata = YES;
     }
-
+    
     if(includeMarkers)
     {
         _mutableMarkers = [[NSMutableArray alloc] init];
@@ -319,17 +339,9 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
         //
         return;
     }
-
-    NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://a.tiles.mapbox.com/v4/%@/%ld/%ld/%ld%@.%@%@",
-                                       _mapID,
-                                       (long)path.z,
-                                       (long)path.x,
-                                       (long)path.y,
-                                       (path.contentScaleFactor > 1.0 ? @"@2x" : @""),
-                                       [MBXRasterTileOverlay qualityExtensionForImageQuality:_imageQuality],
-                                       [@"?access_token=" stringByAppendingString:[MBXMapKit accessToken]]
-                                       ]];
-
+    
+    NSURL *url = [self URLForTilePath:path];
+    
     MBXRasterTileOverlayCompletionBlock completionHandler = ^(NSData *data, NSError *error) {
         // Invoke the loadTileAtPath's completion handler
         //
@@ -344,13 +356,23 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             });
         }
     };
-
+    
     [self setRenderCompletionState:MBXRenderCompletionStateFull
                   ifCurrentStateIs:MBXRenderCompletionStateUnknown];
-
+    
     [self addPendingRender:url removePendingRender:nil];
-
+    
     [self asyncLoadURL:url workerBlock:nil completionHandler:completionHandler];
+}
+
+- (NSURL *)URLForTilePath:(MKTileOverlayPath)path
+{
+    return [NSURL URLWithString:[NSString stringWithFormat:self.URLTemplate,
+                                 (long)path.z,
+                                 (long)path.x,
+                                 (long)path.y,
+                                 (path.contentScaleFactor > 1.0 ? @"@2x" : @"")
+                                 ]];
 }
 
 #pragma mark - Delegate Notifications
@@ -358,7 +380,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
 - (void)setDelegate:(id<MBXRasterTileOverlayDelegate>)delegate
 {
     _delegate = delegate;
-
+    
     // If notifications were attempted between initialization and the time the delegate was set, send
     // the saved notifications. This is a normal situation for offline maps because their resources
     // load *very* quickly using operation queues on background threads.
@@ -445,7 +467,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             // Find point features in the markers dictionary (if there are any) and add them to the map.
             //
             markers = simplestyleJSONDictionary[@"features"];
-
+            
             if (markers && [markers isKindOfClass:[NSArray class]])
             {
                 for (value in (NSArray *)markers)
@@ -454,7 +476,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
                     {
                         NSDictionary *feature = (NSDictionary *)value;
                         NSString *type = feature[@"geometry"][@"type"];
-
+                        
                         if ([@"Point" isEqualToString:type])
                         {
                             // Only handle point features for now.
@@ -466,18 +488,18 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
                             NSString *size        = feature[@"properties"][@"marker-size"];
                             NSString *color       = feature[@"properties"][@"marker-color"];
                             NSString *symbol      = feature[@"properties"][@"marker-symbol"];
-
+                            
                             if (longitude && latitude && size && color && symbol)
                             {
                                 // Keep track of how many marker icons are submitted to the download queue
                                 //
                                 _activeMarkerIconRequests += 1;
-
+                                
                                 MBXPointAnnotation *point = [MBXPointAnnotation new];
                                 point.title      = title;
                                 point.subtitle   = description;
                                 point.coordinate = CLLocationCoordinate2DMake([latitude doubleValue], [longitude doubleValue]);
-
+                                
                                 NSURL *markerURL = [MBXRasterTileOverlay markerIconURLForSize:size symbol:symbol color:color];
                                 [self asyncLoadMarkerIconURL:(NSURL *)markerURL point:point];
                             }
@@ -492,7 +514,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             }
         }
     };
-
+    
     // This block runs at the end of all error handling and data processing associated with the URL
     //
     MBXRasterTileOverlayCompletionBlock completionHandler = ^(NSData *data, NSError *error) {
@@ -506,7 +528,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             //
             _markerIconLoaderMayInitiateDelegateCallback = NO;
             [self notifyDelegateDidLoadMarkers:nil withError:error];
-
+            
             _didFinishLoadingMarkers = YES;
             if(_didFinishLoadingMetadata) {
                 [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
@@ -520,7 +542,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
                 //
                 _markers = [NSArray arrayWithArray:_mutableMarkers];
                 [self notifyDelegateDidLoadMarkers:_markers withError:error];
-
+                
                 _didFinishLoadingMarkers = YES;
                 if(_didFinishLoadingMetadata) {
                     [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
@@ -535,7 +557,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             }
         }
     };
-
+    
     [self asyncLoadURL:_markersURL workerBlock:workerBlock completionHandler:completionHandler];
 }
 
@@ -550,14 +572,14 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
 #else
         point.image = [[NSImage alloc] initWithData:data];
 #endif
-
+        
         // Add the annotation for this marker icon to the collection of point annotations
         // and update the count of marker icons in the download queue
         //
         [_mutableMarkers addObject:point];
         _activeMarkerIconRequests -= 1;
     };
-
+    
     // This block runs at the end of all error handling and data processing associated with the URL
     //
     MBXRasterTileOverlayCompletionBlock completionHandler = ^(NSData *data, NSError *error) {
@@ -565,14 +587,14 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
         {
             _markers = [NSArray arrayWithArray:_mutableMarkers];
             [self notifyDelegateDidLoadMarkers:_markers withError:error];
-
+            
             _didFinishLoadingMarkers = YES;
             if(_didFinishLoadingMetadata) {
                 [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
             }
         }
     };
-
+    
     [self asyncLoadURL:url workerBlock:workerBlock completionHandler:completionHandler];
 }
 
@@ -593,11 +615,11 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             {
                 self.minimumZ = [_tileJSONDictionary[@"minzoom"] integerValue];
                 self.maximumZ = [_tileJSONDictionary[@"maxzoom"] integerValue];
-
+                
                 _centerZoom = [_tileJSONDictionary[@"center"][2] integerValue];
                 _center.latitude = [_tileJSONDictionary[@"center"][1] doubleValue];
                 _center.longitude = [_tileJSONDictionary[@"center"][0] doubleValue];
-
+                
             }
             else
             {
@@ -605,18 +627,18 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             }
         }
     };
-
+    
     // This block runs at the end of all error handling and data processing associated with the URL
     //
     MBXRasterTileOverlayCompletionBlock completionHandler = ^(NSData *data, NSError *error) {
         [self notifyDelegateDidLoadMetadata:_tileJSONDictionary withError:error];
-
+        
         _didFinishLoadingMetadata = YES;
         if(_didFinishLoadingMarkers) {
             [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
         }
     };
-
+    
     [self asyncLoadURL:_metadataURL workerBlock:workerBlock completionHandler:completionHandler];
 }
 
@@ -628,7 +650,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     // 2. Provide a single configuration point where it is possible to set breakpoints and adjust the caching policy for all HTTP requests
     // 3. Provide a hook point for implementing alternate methods (i.e. offline map database) of fetching data for a URL
     //
-
+    
     if (_offlineMapDatabase)
     {
         // If this assert fails, it's probably because MBXOfflineMapDownloader's removeOfflineMapDatabase: method has been invoked
@@ -636,7 +658,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
         // error which should be checked for and avoided.
         //
         assert(_offlineMapDatabase.isInvalid == NO);
-
+        
         // If an offline map database is configured for this overlay, use the database to fetch data for URLs
         //
         NSError *error;
@@ -648,13 +670,13 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
             if (workerBlock) workerBlock(data, &error);
         }
         completionHandler(data,error);
-
+        
         if (error)
         {
             [self setRenderCompletionState:MBXRenderCompletionStatePartial
                           ifCurrentStateIs:MBXRenderCompletionStateFull];
         }
-
+        
         [self addPendingRender:nil removePendingRender:url];
     }
     else
@@ -664,37 +686,37 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
         [NSURLConnection sendAsynchronousRequest:[[self class] overlayURLRequestForURL:url]
                                            queue:[NSOperationQueue mainQueue]
                                completionHandler:^(NSURLResponse *response, NSData *data, NSError *error)
-                               {
-                                   NSError *outError = nil;
-
-                                   if (!error)
-                                   {
-                                       if ([response isKindOfClass:[NSHTTPURLResponse class]] && ((NSHTTPURLResponse *)response).statusCode != 200)
-                                       {
-                                           outError = [self statusErrorFromHTTPResponse:response];
-                                       }
-                                       else
-                                       {
-                                           // Since the URL was successfully retrieved, invoke the block to process its data
-                                           //
-                                           if (workerBlock) workerBlock(data, &outError);
-                                       }
-                                   }
-                                   else
-                                   {
-                                       outError = [error copy];
-                                   }
-
-                                   completionHandler(data, outError);
-
-                                   if (outError)
-                                   {
-                                       [self setRenderCompletionState:MBXRenderCompletionStatePartial
-                                                     ifCurrentStateIs:MBXRenderCompletionStateFull];
-                                   }
-
-                                   [self addPendingRender:nil removePendingRender:url];
-                               }];
+         {
+             NSError *outError = nil;
+             
+             if (!error)
+             {
+                 if ([response isKindOfClass:[NSHTTPURLResponse class]] && ((NSHTTPURLResponse *)response).statusCode != 200)
+                 {
+                     outError = [self statusErrorFromHTTPResponse:response];
+                 }
+                 else
+                 {
+                     // Since the URL was successfully retrieved, invoke the block to process its data
+                     //
+                     if (workerBlock) workerBlock(data, &outError);
+                 }
+             }
+             else
+             {
+                 outError = [error copy];
+             }
+             
+             completionHandler(data, outError);
+             
+             if (outError)
+             {
+                 [self setRenderCompletionState:MBXRenderCompletionStatePartial
+                               ifCurrentStateIs:MBXRenderCompletionStateFull];
+             }
+             
+             [self addPendingRender:nil removePendingRender:url];
+         }];
     }
 }
 
@@ -702,13 +724,13 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
 {
     dispatch_async(dispatch_get_main_queue(), ^{
         if (addURL) [self.pendingTileRenders addObject:addURL];
-
+        
         if ([self.pendingTileRenders containsObject:removeURL]) [self.pendingTileRenders removeObject:removeURL];
-
+        
         if ([self.pendingTileRenders count] == 0)
         {
             [NSObject cancelPreviousPerformRequestsWithTarget:self];
-
+            
             [self performSelector:@selector(notifyRenderDelegateWithSuccess:)
                        withObject:@(self.renderCompletionState == MBXRenderCompletionStateFull)
                        afterDelay:0.5];
@@ -722,7 +744,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     {
         [self.delegate tileOverlayDidFinishRendering:self fullyRendered:[flag boolValue]];
     }
-
+    
     [self setRenderCompletionState:MBXRenderCompletionStateUnknown];
 }
 
@@ -733,7 +755,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     // Return an appropriate NSError for any HTTP response other than 200.
     //
     NSString *reason = [NSString stringWithFormat:@"HTTP status %li was received", (long)((NSHTTPURLResponse *)response).statusCode];
-
+    
     return [NSError mbx_errorWithCode:MBXMapKitErrorCodeHTTPStatus reason:reason description:@"HTTP status error"];
 }
 
@@ -743,7 +765,7 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     // Return an appropriate NSError for to indicate that a JSON dictionary was missing important keys.
     //
     NSString *reason = [NSString stringWithFormat:@"The %@ dictionary is missing important keys", dictionaryName];
-
+    
     return [NSError mbx_errorWithCode:MBXMapKitErrorCodeDictionaryMissingKeys reason:reason description:@"Dictionary missing keys error"];
 }
 

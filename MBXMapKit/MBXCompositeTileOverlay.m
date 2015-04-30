@@ -17,7 +17,7 @@
 -(id)initWithTileOverlays:(NSArray *)tileOverlays {
     self = [super init];
     if (self==nil) return nil;
-
+    
     BOOL valid = YES;
     for (id overlay in tileOverlays) {
         valid &= [overlay isKindOfClass:[MKTileOverlay class]];
@@ -28,6 +28,9 @@
         return nil;
     }
     
+    self.tileSize = [tileOverlays.firstObject tileSize];
+    self.minimumZ = [[tileOverlays valueForKeyPath:@"@min.minimumZ"] integerValue];
+    self.maximumZ = [[tileOverlays valueForKeyPath:@"@max.maximumZ"] integerValue];
     _tileOverlays = [tileOverlays copy];
     
     return self;
@@ -46,16 +49,6 @@
     return mapRect;
 }
 
-- (NSInteger)minimumZ
-{
-    return [[self.tileOverlays valueForKeyPath:@"@min.minimumZ"] integerValue];
-}
-
-- (NSInteger)maximumZ
-{
-    return [[self.tileOverlays valueForKeyPath:@"@max.maximumZ"] integerValue];
-}
-
 -(BOOL)canReplaceMapContent {
     for (MKTileOverlay *overlay in self.tileOverlays) {
         if (overlay.canReplaceMapContent)
@@ -65,7 +58,7 @@
 }
 
 - (void)loadTileAtPath:(MKTileOverlayPath)path tileOverlayAtIndex:(NSInteger)tileIndex result:(void (^)(NSData *tileData, NSError *error))result {
-
+    
     NSInteger __block blockTileIndex = tileIndex;
     [self.tileOverlays[tileIndex] loadTileAtPath:path result:^(NSData *tileData, NSError *error) {
         if (error) {
@@ -82,7 +75,7 @@
 }
 - (void)loadTileAtPath:(MKTileOverlayPath)path result:(void (^)(NSData *, NSError *))result {
     NSInteger tileIndex = self.tileOverlays.count-1;
-
+    
     [self loadTileAtPath:path tileOverlayAtIndex:tileIndex result:result];
 }
 
