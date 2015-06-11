@@ -61,7 +61,9 @@
     }
 }
 
-- (MKTileOverlayPath)pathForMapRect:(MKMapRect)mapRect zoomScale:(MKZoomScale)zoomScale {
+- (MKTileOverlayPath)pathForMapRect:(MKMapRect)mapRect
+                          zoomScale:(MKZoomScale)zoomScale
+{
     MKTileOverlay *tileOverlay = (MKTileOverlay *)self.overlay;
     CGFloat factor = tileOverlay.tileSize.width / 256;
 
@@ -273,24 +275,15 @@
         return [self setNeedsDisplayInMapRect:mapRect zoomScale:zoomScale];
     }
 
-    CGImageRef croppedImageRef = nil;
-
-    if (CGImageGetWidth(imageRef) == 512) {
-        CGRect cropRect = CGRectMake(0, 0, 256, 256);
-        cropRect.origin.x += (path.x % 2 ? 256 : 0);
-        cropRect.origin.y += (path.y % 2 ? 256 : 0);
-        croppedImageRef = CGImageCreateWithImageInRect(imageRef, cropRect);
-    }
-
-    CGRect tileRect = CGRectMake(0, 0, 256, 256);
-    UIGraphicsBeginImageContext(tileRect.size);
-    CGContextDrawImage(UIGraphicsGetCurrentContext(), tileRect, (croppedImageRef ? croppedImageRef : imageRef));
-    CGImageRelease(croppedImageRef);
-    CGImageRelease(imageRef);
-    CGImageRef flippedImageRef = UIGraphicsGetImageFromCurrentImageContext().CGImage;
-    UIGraphicsEndImageContext();
-
-    CGContextDrawImage(context, [self rectForMapRect:mapRect], flippedImageRef);
+    CGContextSaveGState(context);
+    CGRect imageRect = [self rectForMapRect:mapRect];
+    imageRect = CGRectApplyAffineTransform(imageRect, CGAffineTransformMakeScale(1.0, -1.0));
+    
+    CGContextScaleCTM(context, 1.0, -1.0);
+    
+    CGContextDrawImage(context, imageRect, imageRef);
+    CGContextScaleCTM(context, 1.0, -1.0);
+    CGContextRestoreGState(context);
 }
 
 #pragma mark - MKTileOverlayRenderer Compatibility

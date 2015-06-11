@@ -263,9 +263,6 @@ typedef void (^MBXRasterTileOverlayCompletionBlock)(NSData *data, NSError *error
     // Use larger tiles if on retina
     //
     
-    if ([MBXMapKit accessToken] && [[UIScreen mainScreen] scale] > 1)
-        self.tileSize = CGSizeMake(512, 512);
-    
     // Default to covering up Apple's map
     //
     self.canReplaceMapContent = YES;
