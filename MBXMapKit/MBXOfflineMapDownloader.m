@@ -845,7 +845,7 @@
           };
         
         
-        NSMutableArray *urls = [[NSMutableArray alloc] init];
+        NSMutableSet *urls = [NSMutableSet set];
         
         BOOL hasAccessToken = [MBXMapKit accessToken];
         NSString *version = (hasAccessToken? @"v4" : @"v3");
