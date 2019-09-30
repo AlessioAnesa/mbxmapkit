@@ -337,7 +337,7 @@
         _metadataForPendingNotification = nil;
         _metadataErrorForPendingNotification = nil;
         dispatch_async(dispatch_get_main_queue(), ^(void){
-            [_delegate tileOverlay:self didLoadMetadata:metadata withError:error];
+            [self->_delegate tileOverlay:self didLoadMetadata:metadata withError:error];
         });
     }
     else
@@ -355,7 +355,7 @@
         _markersForPendingNotification = nil;
         _markersErrorForPendingNotification = nil;
         dispatch_async(dispatch_get_main_queue(), ^(void){
-            [_delegate tileOverlay:self didLoadMarkers:markers withError:error];
+            [self->_delegate tileOverlay:self didLoadMarkers:markers withError:error];
         });
     }
     else
@@ -372,7 +372,7 @@
     {
         _needToNotifyDelegateThatMetadataAndMarkersAreFinished = NO;
         dispatch_async(dispatch_get_main_queue(), ^(void){
-            [_delegate tileOverlayDidFinishLoadingMetadataAndMarkers:self];
+            [self->_delegate tileOverlayDidFinishLoadingMetadataAndMarkers:self];
         });
     }
     else
@@ -425,7 +425,7 @@
                             {
                                 // Keep track of how many marker icons are submitted to the download queue
                                 //
-                                _activeMarkerIconRequests += 1;
+                                self->_activeMarkerIconRequests += 1;
 
                                 MBXPointAnnotation *point = [MBXPointAnnotation new];
                                 point.title      = title;
@@ -459,34 +459,34 @@
             // markers from being given to the delegate. The alternative would be to quietly overlook
             // the fact that some of the markers probably didn't load properly.
             //
-            _markerIconLoaderMayInitiateDelegateCallback = NO;
+            self->_markerIconLoaderMayInitiateDelegateCallback = NO;
             [self notifyDelegateDidLoadMarkers:nil withError:error];
 
-            _didFinishLoadingMarkers = YES;
-            if(_didFinishLoadingMetadata) {
+            self->_didFinishLoadingMarkers = YES;
+            if(self->_didFinishLoadingMetadata) {
                 [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
             }
         }
         else
         {
-            if(_activeMarkerIconRequests <= 0)
+            if(self->_activeMarkerIconRequests <= 0)
             {
                 // Handle the case where all the marker icons URLs finished loading before the markers.geojson finished parsing
                 //
-                _markers = [NSArray arrayWithArray:_mutableMarkers];
-                [self notifyDelegateDidLoadMarkers:_markers withError:error];
+                self->_markers = [NSArray arrayWithArray:self->_mutableMarkers];
+                [self notifyDelegateDidLoadMarkers:self->_markers withError:error];
 
-                _didFinishLoadingMarkers = YES;
-                if(_didFinishLoadingMetadata) {
+                self->_didFinishLoadingMarkers = YES;
+                if(self->_didFinishLoadingMetadata) {
                     [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
                 }
-                _markerIconLoaderMayInitiateDelegateCallback = NO;
+                self->_markerIconLoaderMayInitiateDelegateCallback = NO;
             }
             else
             {
                 // There are still icons loading, so let the last one of those handle the delegate callback
                 //
-                _markerIconLoaderMayInitiateDelegateCallback = YES;
+                self->_markerIconLoaderMayInitiateDelegateCallback = YES;
             }
         }
     };
@@ -510,21 +510,21 @@
         // Add the annotation for this marker icon to the collection of point annotations
         // and update the count of marker icons in the download queue
         //
-        [_mutableMarkers addObject:point];
-        _activeMarkerIconRequests -= 1;
+        [self->_mutableMarkers addObject:point];
+        self->_activeMarkerIconRequests -= 1;
     };
 
     // This block runs at the end of all error handling and data processing associated with the URL
     //
     void(^completionHandler)(NSData *,NSError *) = ^(NSData *data, NSError *error)
     {
-        if(_markerIconLoaderMayInitiateDelegateCallback && _activeMarkerIconRequests <= 0)
+        if(self->_markerIconLoaderMayInitiateDelegateCallback && self->_activeMarkerIconRequests <= 0)
         {
-            _markers = [NSArray arrayWithArray:_mutableMarkers];
-            [self notifyDelegateDidLoadMarkers:_markers withError:error];
+            self->_markers = [NSArray arrayWithArray:self->_mutableMarkers];
+            [self notifyDelegateDidLoadMarkers:self->_markers withError:error];
 
-            _didFinishLoadingMarkers = YES;
-            if(_didFinishLoadingMetadata) {
+            self->_didFinishLoadingMarkers = YES;
+            if(self->_didFinishLoadingMetadata) {
                 [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
             }
         }
@@ -540,21 +540,21 @@
     //
     void(^workerBlock)(NSData *,NSError **) = ^(NSData *data, NSError **error)
     {
-        _tileJSONDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:error];
+        self->_tileJSONDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:error];
         if(!*error)
         {
-            if (_tileJSONDictionary
-                && _tileJSONDictionary[@"minzoom"]
-                && _tileJSONDictionary[@"maxzoom"]
-                && _tileJSONDictionary[@"center"] && [_tileJSONDictionary[@"center"] count] == 3
-                && _tileJSONDictionary[@"bounds"] && [_tileJSONDictionary[@"bounds"] count] == 4)
+            if (self->_tileJSONDictionary
+                && self->_tileJSONDictionary[@"minzoom"]
+                && self->_tileJSONDictionary[@"maxzoom"]
+                && self->_tileJSONDictionary[@"center"] && [self->_tileJSONDictionary[@"center"] count] == 3
+                && self->_tileJSONDictionary[@"bounds"] && [self->_tileJSONDictionary[@"bounds"] count] == 4)
             {
-                self.minimumZ = [_tileJSONDictionary[@"minzoom"] integerValue];
-                self.maximumZ = [_tileJSONDictionary[@"maxzoom"] integerValue];
+                self.minimumZ = [self->_tileJSONDictionary[@"minzoom"] integerValue];
+                self.maximumZ = [self->_tileJSONDictionary[@"maxzoom"] integerValue];
 
-                _centerZoom = [_tileJSONDictionary[@"center"][2] integerValue];
-                _center.latitude = [_tileJSONDictionary[@"center"][1] doubleValue];
-                _center.longitude = [_tileJSONDictionary[@"center"][0] doubleValue];
+                self->_centerZoom = [self->_tileJSONDictionary[@"center"][2] integerValue];
+                self->_center.latitude = [self->_tileJSONDictionary[@"center"][1] doubleValue];
+                self->_center.longitude = [self->_tileJSONDictionary[@"center"][0] doubleValue];
 
             }
             else
@@ -568,10 +568,10 @@
     //
     void(^completionHandler)(NSData *,NSError *) = ^(NSData *data, NSError *error)
     {
-        [self notifyDelegateDidLoadMetadata:_tileJSONDictionary withError:error];
+        [self notifyDelegateDidLoadMetadata:self->_tileJSONDictionary withError:error];
 
-        _didFinishLoadingMetadata = YES;
-        if(_didFinishLoadingMarkers) {
+        self->_didFinishLoadingMetadata = YES;
+        if(self->_didFinishLoadingMarkers) {
             [self notifyDelegateDidFinishLoadingMetadataAndMarkersForOverlay];
         }
     };
